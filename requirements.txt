@@ -1,0 +1,5 @@
+aiohttp
+apscheduler
+beautifulsoup4
+selenium
+webdriver-manager

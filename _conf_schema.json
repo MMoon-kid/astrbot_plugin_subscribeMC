@@ -1,0 +1,66 @@
+{
+  "subscribe_relation": {
+    "description": "订阅关系",
+    "hint": "这个配置项储存每一个订阅者的订阅链接，使用指令订阅的模组、整合包等也会被添加到这个列表中",
+    "type": "template_list",
+    "default": [],
+    "templates": {
+        "subscriber": {
+          "name": "订阅者",
+          "items": {
+            "ID": {
+              "type": "string",
+              "description": "订阅用户ID",
+              "hint": "特定会话的唯一识别ID，可以使用/sid指令获取",
+              "default": ""
+            },
+            "URL": {
+              "type": "list",
+              "description": "订阅链接",
+              "hint": "该用户订阅的所有模组、整合包链接",
+              "default": [],
+              "item_type": "string"
+            }
+          }
+        }
+    }
+  },
+  "modData": {
+    "description": "模组数据",
+    "hint": "这个配置项储存每一个模组（整合包等其他可订阅项）的所有最新版本信息",
+    "type": "template_list",
+    "default": [],
+    "templates": {
+        "mod": {
+          "name": "模组",
+          "items": {
+            "name": {
+              "type": "string",
+              "description": "模组名称",
+              "default": ""
+            },
+            "URL": {
+              "type": "string",
+              "description": "更新链接",
+              "default": ""
+            },
+            "version": {
+              "type": "string",
+              "description": "最新版本",
+              "default": ""
+            },
+            "date": {
+              "type": "string",
+              "description": "更新日期",
+              "default": ""
+            },
+            "log": {
+              "type": "string",
+              "description": "更新日志",
+              "default": ""
+            }
+          }
+        }
+    }
+  }
+}
