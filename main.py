@@ -1,13 +1,12 @@
-from typing import Dict
-
-from astrbot.api.event import filter, AstrMessageEvent, MessageChain
-from astrbot.api.star import Context, Star
-from astrbot.api import logger
-from astrbot.core.config.astrbot_config import AstrBotConfig
-# import astrbot.api.message_components as Comp
-
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+from astrbot.api import logger
+from astrbot.api.event import AstrMessageEvent, MessageChain, filter
+from astrbot.api.star import Context, Star
+from astrbot.core.config.astrbot_config import AstrBotConfig
+
 from .crawlers import updateInfo
+
 
 class MCMODUpdaterPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
@@ -32,15 +31,15 @@ class MCMODUpdaterPlugin(Star):
             self.scheduler.shutdown()
         logger.info("MC模组更新通知插件已停用")
 
-    def _format_result(self, result: Dict[str, str]) -> str:
+    def _format_result(self, result: dict[str, str]) -> str:
         return ("[查询结果]\n"
                 f"链接：{result['URL']}\n"
                 f"模组名称：{result['name']}\n"
                 f"最新版本：{result['version']}\n"
                 f"更新日期：{result['date']}\n"
                 f"更新日志：\n{result['log']}")
-        
-    def _update_mod_data(self, result: Dict[str, str]):
+
+    def _update_mod_data(self, result: dict[str, str]):
         lastVersion = "无"
         for data in self.config["modData"]:
             if data["URL"] == result["URL"]:
@@ -125,8 +124,8 @@ class MCMODUpdaterPlugin(Star):
             self.config.save_config()
 
         yield event.plain_result(
-            f"订阅成功！\n"
-            f"系统将每小时检查一次更新，发现新版本会主动通知您。"
+            "订阅成功！\n"
+            "系统将每小时检查一次更新，发现新版本会主动通知您。"
         )
 
     @filter.command("mc取消订阅")
