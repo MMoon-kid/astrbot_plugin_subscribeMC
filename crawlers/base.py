@@ -120,8 +120,10 @@ class Crawler(ABC):
                     for i in element.children:
                         if isinstance(i, Tag) and i.name == "ul":
                             ul_text += cls._html2markdown(i, indent + 1).removesuffix("\n") + "\n"
-                        else:
+                        elif isinstance(i, str):
                             text += i.strip()
+                        else:
+                            text += i.get_text().strip()
                     if text:
                         result.append(f"- {text}")
                     if ul_text:
@@ -132,7 +134,10 @@ class Crawler(ABC):
                         if text:
                             result.append(f"{i}. {text}")
                 elif element.name == "ul":
-                    result.append(cls._html2markdown(element, indent))
+                    trueIndent = indent
+                    if soup.name == "ul":
+                        trueIndent += 1
+                    result.append(cls._html2markdown(element, trueIndent))
                 elif element.name == "a":
                     text = element.get_text().strip()
                     if href := element.get("href", ""):
