@@ -1,9 +1,11 @@
-from .base import Crawler
 from bs4 import BeautifulSoup, Tag
+
+from .base import Crawler
+
 
 def get_between_first_two_h2(soup: BeautifulSoup) -> Tag:
     """获取所有标签（按文档顺序，包括嵌套）"""
-    h2s = soup.find_all('h2')
+    h2s = soup.find_all("h2")
     if len(h2s) < 2:
         return soup.new_tag("div")
     elements, current = [], h2s[0]

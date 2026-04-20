@@ -1,6 +1,4 @@
 from .base import Crawler
-import aiohttp
-from bs4 import BeautifulSoup
 
 
 class MCModCrawler(Crawler):

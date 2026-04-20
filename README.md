@@ -1,8 +1,6 @@
 # MC模组更新通知插件
 
-✨ 基于 AstrBot 的一个插件 ✨
-
-用于订阅和管理 Minecraft 模组/整合包的更新通知。
+✨ 基于 AstrBot 的一个插件，用于订阅和管理 Minecraft 模组/整合包的更新通知。 ✨
 
 ## ✨ 功能
 
@@ -61,13 +59,18 @@ pip install -r requirements.txt
 ## 🛠️ 技术实现
 
 - **网页爬虫**：使用 aiohttp + BeautifulSoup 解析 HTML
-- **定时任务**：使用 APScheduler 每小时自动检查更新
-- **依赖项**：aiohttp、beautifulsoup4、apscheduler、selenium、webdriver-manager
+- **定时任务**：使用协程间隔固定时间自动检查更新
+- **依赖项**：aiohttp、beautifulsoup4、selenium、webdriver-manager、fake_useragent
 
 ## 📝 更新日志
 
-- 最新版本：v1.0.0
-- 初始版本
+- v1.0.1
+  - 添加 `github`和 `咒次元`特供爬取规则
+  - 修改完善更新检查机制
+  - 优化转markdown规则
+- v1.0.0
+  - 提供 `mcmod`、`bbsmc`、`xyebbs`的爬取规则
+  - 完成基本框架
 
 ## 📄 License
 

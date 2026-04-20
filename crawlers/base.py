@@ -1,10 +1,10 @@
-from abc import ABC, abstractmethod
 import asyncio
-
-from bs4 import BeautifulSoup
-from fake_useragent import UserAgent
+from abc import ABC, abstractmethod
 
 import aiohttp
+from bs4 import BeautifulSoup, Tag
+from fake_useragent import UserAgent
+
 
 class Crawler(ABC):
     netloc: str
@@ -27,7 +27,7 @@ class Crawler(ABC):
                 return await crawler._updateInfo(url)
         else:
             raise ValueError(f"不支持的网站: {url}\n目前已支持:\n{'\n'.join([f'- {crawler.netloc}' for crawler in cls.ALL])}")
-    
+
     @classmethod
     async def _get_page_with_aiohttp(cls, url: str) -> BeautifulSoup:
         headers = {
@@ -50,7 +50,7 @@ class Crawler(ABC):
                     if response.status != 200:
                         return BeautifulSoup("", "html.parser")
                     return BeautifulSoup(await response.text(), "html.parser")
-        except asyncio.TimeoutError as e:
+        except asyncio.TimeoutError:
             return BeautifulSoup("", "html.parser")
         except aiohttp.ClientError:
             return BeautifulSoup("", "html.parser")
@@ -88,63 +88,69 @@ class Crawler(ABC):
                 driver.quit()
 
     @classmethod
-    def _html2markdown(cls, html: BeautifulSoup) -> str:
+    def _html2markdown(cls, soup: BeautifulSoup, indent: int = 0) -> str:
         result = []
-        for child in html.children:
-            if isinstance(child, str):
-                text = child.strip()
+        for element in soup.children:
+            if isinstance(element, str):
+                text = element.strip()
                 if text:
                     result.append(text)
-            elif child.name:
-                if child.name == "h1":
-                    result.append(f"# {child.get_text().strip()}")
-                elif child.name == "h2":
-                    result.append(f"## {child.get_text().strip()}")
-                elif child.name == "h3":
-                    result.append(f"### {child.get_text().strip()}")
-                elif child.name == "h4":
-                    result.append(f"#### {child.get_text().strip()}")
-                elif child.name == "h5":
-                    result.append(f"##### {child.get_text().strip()}")
-                elif child.name == "h6":
-                    result.append(f"###### {child.get_text().strip()}")
-                elif child.name == "p":
-                    text = child.get_text().strip()
+            elif element.name:
+                if element.name == "h1":
+                    result.append(f"# {element.get_text().strip()}")
+                elif element.name == "h2":
+                    result.append(f"## {element.get_text().strip()}")
+                elif element.name == "h3":
+                    result.append(f"### {element.get_text().strip()}")
+                elif element.name == "h4":
+                    result.append(f"#### {element.get_text().strip()}")
+                elif element.name == "h5":
+                    result.append(f"##### {element.get_text().strip()}")
+                elif element.name == "h6":
+                    result.append(f"###### {element.get_text().strip()}")
+                elif element.name == "p":
+                    text = element.get_text().strip()
                     if text:
                         result.append(text)
-                elif child.name == "li":
-                    text = child.get_text().strip()
+                elif element.name == "li":
+                    if element.find("ul") is None:
+                        result.append(f"- {element.get_text().strip()}")
+                        continue
+                    text, ul_text = "", ""
+                    for i in element.children:
+                        if isinstance(i, Tag) and i.name == "ul":
+                            ul_text += cls._html2markdown(i, indent + 1).removesuffix("\n") + "\n"
+                        else:
+                            text += i.strip()
                     if text:
                         result.append(f"- {text}")
-                elif child.name == "ol":
-                    for i, li in enumerate(child.find_all("li", recursive=False), 1):
+                    if ul_text:
+                        result.append(ul_text.strip())
+                elif element.name == "ol":
+                    for i, li in enumerate(element.find_all("li", recursive=False), 1):
                         text = li.get_text().strip()
                         if text:
                             result.append(f"{i}. {text}")
-                elif child.name == "ul":
-                    for li in child.find_all("li", recursive=False):
-                        text = li.get_text().strip()
-                        if text:
-                            result.append(f"- {text}")
-                elif child.name == "a":
-                    text = child.get_text().strip()
-                    href = child.get("href", "")
-                    if href:
+                elif element.name == "ul":
+                    result.append(cls._html2markdown(element, indent))
+                elif element.name == "a":
+                    text = element.get_text().strip()
+                    if href := element.get("href", ""):
                         result.append(f"[{text}]({href})")
                     else:
                         result.append(text)
-                elif child.name == "strong" or child.name == "b":
-                    result.append(f"**{child.get_text().strip()}**")
-                elif child.name == "em" or child.name == "i":
-                    result.append(f"*{child.get_text().strip()}*")
-                elif child.name == "code":
-                    result.append(f"`{child.get_text().strip()}`")
-                elif child.name == "br":
+                elif element.name == "strong" or element.name == "b":
+                    result.append(f"**{element.get_text().strip()}**")
+                elif element.name == "em" or element.name == "i":
+                    result.append(f"*{element.get_text().strip()}*")
+                elif element.name == "code":
+                    result.append(f"`{element.get_text().strip()}`")
+                elif element.name == "br":
                     result.append("\n")
-                elif child.name == "div":
-                    result.append(cls._html2markdown(child))
-                elif child.name == "span":
-                    result.append(child.get_text().strip())
+                elif element.name == "div":
+                    result.append(cls._html2markdown(element, indent))
+                elif element.name == "span":
+                    result.append(element.get_text().strip())
                 else:
-                    result.append(cls._html2markdown(child))
-        return "\n".join(result)
+                    result.append(cls._html2markdown(element, indent))
+        return "\n".join("  " * indent + i for i in result)

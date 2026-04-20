@@ -15,8 +15,8 @@ class GitHubCrawler(Crawler):
             "log": "",
         }
         if name_element := soup.find("a", {
-            'data-pjax': '#repo-content-pjax-container',
-            'data-turbo-frame': 'repo-content-turbo-frame'
+            "data-pjax": "#repo-content-pjax-container",
+            "data-turbo-frame": "repo-content-turbo-frame"
         }):
             if name_element.get("class", None) is None:
                 result["name"] = name_element.text.strip()

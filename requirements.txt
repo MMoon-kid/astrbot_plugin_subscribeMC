@@ -1,5 +1,5 @@
 aiohttp
-apscheduler
 beautifulsoup4
 selenium
 webdriver-manager
+fake_useragent
