@@ -1,4 +1,4 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import asyncio
 
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, MessageChain, filter
@@ -12,23 +12,19 @@ class MCMODUpdaterPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
         self.config = config
-        self.scheduler = AsyncIOScheduler()
+        self.update_job = None
 
     async def initialize(self):
-        self.scheduler.add_job(
-            self._check_all,
-            trigger="interval",
-            seconds=3600,
-            id="update_check",
-            replace_existing=True,
-        )
-        if not self.scheduler.running:
-            self.scheduler.start()
-        logger.info("MC模组更新通知插件已初始化")
+        self.update_job = asyncio.create_task(self._scheduler())
+        logger.info("MC模组更新通知插件已启用")
 
     async def terminate(self):
-        if self.scheduler.running:
-            self.scheduler.shutdown()
+        if self.update_job:
+            self.update_job.cancel()
+            try:
+                await self.update_job
+            except asyncio.CancelledError:
+                pass
         logger.info("MC模组更新通知插件已停用")
 
     def _format_result(self, result: dict[str, str]) -> str:
@@ -58,9 +54,7 @@ class MCMODUpdaterPlugin(Star):
             self.config.save_config()
         return lastVersion
 
-    @filter.command("mc强制更新")
-    async def _check_all(self, event: AstrMessageEvent=None):
-        """手动调用更新所有订阅内容的函数，和自动更新是相同的，DEBUG用"""
+    async def _check_all(self):
         count = 0
         for subscriber in self.config["subscribe_relation"]:
             for url in subscriber["URL"]:
@@ -72,8 +66,18 @@ class MCMODUpdaterPlugin(Star):
                 if lastVersion != result["version"]:
                     count += 1
                     await self.context.send_message(subscriber["ID"], MessageChain().message(f"[更新通知] {lastVersion} -> {result['version']}\n").message(self._format_result(result)))
-        if event is not None:
-            yield event.plain_result(f"手动更新完成，共更新 {count} 个模组")
+        logger.info(f"自动更新完成，共更新 {count} 个模组")
+
+    async def _scheduler(self):
+        while True:
+            try:
+                await asyncio.sleep(self.config.get("update_interval", 3600))
+                await self._check_all()
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                logger.error(f"更新任务出错：{str(e)}")
+
 
     @filter.command("mc查询")
     async def mc_query(self, event: AstrMessageEvent):
@@ -173,3 +177,10 @@ class MCMODUpdaterPlugin(Star):
         for i, url in enumerate(URLs):
             lines.append(f"[{i + 1}]. [{table.get(url, url)}]({url})\n")
         yield event.plain_result("\n".join(lines).strip())
+
+    @filter.command("mc强制更新")
+    async def mc_update_force(self, event: AstrMessageEvent):
+        """手动调用更新所有订阅内容的函数，和自动更新是相同的，DEBUG用"""
+        await self._check_all()
+        yield event.plain_result("手动更新完成")
+
