@@ -19,6 +19,9 @@ class MCMODUpdaterPlugin(Star):
         logger.info("MC模组更新通知插件已启用")
 
     async def terminate(self):
+        if Crawler._driver is not None:
+            Crawler._driver.quit()
+            Crawler._driver = None
         if self.update_job:
             self.update_job.cancel()
             try:

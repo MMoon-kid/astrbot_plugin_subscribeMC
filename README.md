@@ -12,6 +12,7 @@
   - [XyeBBS](https://www.xyebbs.com)
   - [BBSMC](https://bbsmc.net)
   - [GitHub](https://github.com)
+  - [modrinth](https://modrinth.com/)
   - （WIP）
 - 📋 **订阅管理**：支持查看订阅列表、取消订阅等操作
 
@@ -19,11 +20,11 @@
 
 | 指令                  | 说明                                    |
 | --------------------- | --------------------------------------- |
-| `/mc订阅 <URL>`     | 订阅指定模组/整合包的更新通知           |
-| `/mc取消订阅 <URL>` | 取消订阅指定模组/整合包                 |
-| `/mc订阅列表`       | 查看当前会话的订阅列表                  |
-| `/mc查询 <URL>`     | 查询模组/整合包的最新版本信息（不订阅） |
-| `/mc强制更新`       | 手动触发所有已订阅的更新检查            |
+| `/mc订阅 <URL>`       | 订阅指定模组/整合包的更新通知           |
+| `/mc取消订阅 <URL>`   | 取消订阅指定模组/整合包                 |
+| `/mc订阅列表`         | 查看当前会话的订阅列表                  |
+| `/mc查询 <URL>`       | 查询模组/整合包的最新版本信息（不订阅） |
+| `/mc强制更新`         | 手动触发所有已订阅的更新检查            |
 
 ## ⚙️ 配置说明
 
@@ -31,23 +32,23 @@
 
 | 配置项                 | 说明                             |
 | ---------------------- | -------------------------------- |
-| `subscribe_relation` | 存储所有订阅者及其订阅的链接     |
-| `modData`            | 存储所有已订阅模组的最新版本信息 |
+| `subscribe_relation`   | 存储所有订阅者及其订阅的链接     |
+| `modData`              | 存储所有已订阅模组的最新版本信息 |
 
 ## 📦 安装
 
 1. 将本插件克隆到 AstrBot 插件目录：
 
-```bash
-cd AstrBot/data/plugins
-git clone https://github.com/MMoon-kid/astrbot_plugin_subscribeMC
-```
+    ```bash
+    cd AstrBot/data/plugins
+    git clone https://github.com/MMoon-kid/astrbot_plugin_subscribeMC
+    ```
 
 2. 安装依赖：
 
-```bash
-pip install -r requirements.txt
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 ## 📌 注意事项
 
@@ -64,6 +65,8 @@ pip install -r requirements.txt
 
 ## 📝 更新日志
 
+- v1.0.2
+  - 添加 `modrinth`爬取规则
 - v1.0.1
   - 添加 `github`和 `咒次元`特供爬取规则
   - 修改完善更新检查机制
@@ -79,4 +82,4 @@ pip install -r requirements.txt
 ## 👨‍💻 开发者
 
 - **开发者**：明辉晓月
-- **仓库**：https://github.com/MMoon-kid/astrbot_plugin_subscribeMC
+- **仓库**：[astrbot_plugin_subscribeMC](https://github.com/MMoon-kid/astrbot_plugin_subscribeMC)
