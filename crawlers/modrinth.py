@@ -1,12 +1,14 @@
+import asyncio
+
 from .base import Crawler
 
 
-class BBSMCCrawler(Crawler):
-    netloc: str = "bbsmc.net"
+class ModrinthCrawler(Crawler):
+    netloc: str = "modrinth.com"
 
     @classmethod
     async def _updateInfo(cls, url: str) -> dict[str, str]:
-        soup = await cls._get_page_with_aiohttp(url)
+        soup = await asyncio.to_thread(cls._get_page_with_selenium, url)
         result = {
             "URL": url,
             "name": "",
@@ -14,7 +16,7 @@ class BBSMCCrawler(Crawler):
             "date": "",
             "log": "",
         }
-        if name_element := soup.find("h1", class_="hero-title"):
+        if name_element := soup.find("h1", class_="leading-none"):
             result["name"] = name_element.text.strip()
         if version_element := soup.find("h2", class_="name"):
             result["version"] = version_element.text.strip().removeprefix(result["name"]).strip()
