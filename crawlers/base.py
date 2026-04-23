@@ -4,10 +4,8 @@ from abc import ABC, abstractmethod
 import aiohttp
 from bs4 import BeautifulSoup, Tag
 from fake_useragent import UserAgent
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from playwright.async_api import async_playwright
+from playwright_stealth import Stealth
 
 
 class Crawler(ABC):
@@ -31,19 +29,8 @@ class Crawler(ABC):
             if crawler.netloc in url:
                 return await crawler._updateInfo(url)
         else:
-            raise ValueError(f"不支持的网站: {url}\n目前已支持:\n{'\n'.join([f'- {crawler.netloc}' for crawler in cls.ALL])}")
-    
-    @classmethod
-    def initChrome(cls):
-        chrome_options = webdriver.chrome.options.Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--window-size=1920,1080")
-        chrome_options.add_argument(f"--user-agent={UserAgent().random}")
-        chrome_options.page_load_strategy = 'eager'
-        cls._driver = webdriver.Chrome(options=chrome_options)
+            urls = "\n".join([f"- {crawler.netloc}" for crawler in cls.ALL])
+            raise ValueError(f"不支持的网站: {url}\n目前已支持:\n{urls}")
 
     @classmethod
     async def _get_page_with_aiohttp(cls, url: str) -> BeautifulSoup:
@@ -73,14 +60,15 @@ class Crawler(ABC):
             return BeautifulSoup("", "html.parser")
 
     @classmethod
-    def _get_page_with_selenium(cls, url: str, selector: str="div.markdown-body") -> BeautifulSoup:
-        if cls._driver is None:
-            cls.initChrome()
-        cls._driver.get(url)
-        WebDriverWait(cls._driver, 15).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, selector))
-        )
-        return BeautifulSoup(cls._driver.page_source, "html.parser")
+    async def _get_page_with_playwright(cls, url: str, selector: str="div.markdown-body") -> BeautifulSoup:
+        async with Stealth().use_async(async_playwright()) as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page(user_agent=UserAgent().random)
+            await page.goto(url, wait_until="networkidle")
+            await page.wait_for_selector(selector, state="visible", timeout=30000)
+            content = await page.content()
+            await browser.close()
+            return BeautifulSoup(content, "html.parser")
 
     @classmethod
     def _html2markdown(cls, soup: BeautifulSoup, indent: int = 0) -> str:

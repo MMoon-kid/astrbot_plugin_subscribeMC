@@ -1,5 +1,3 @@
-import asyncio
-
 from .base import Crawler
 
 
@@ -8,7 +6,7 @@ class ModrinthCrawler(Crawler):
 
     @classmethod
     async def _updateInfo(cls, url: str) -> dict[str, str]:
-        soup = await asyncio.to_thread(cls._get_page_with_selenium, url)
+        soup = await cls._get_page_with_playwright(url)
         result = {
             "URL": url,
             "name": "",

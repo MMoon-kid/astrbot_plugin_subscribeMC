@@ -1,5 +1,5 @@
 aiohttp
 beautifulsoup4
-selenium
-webdriver-manager
 fake_useragent
+playwright
+playwright-stealth

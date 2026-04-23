@@ -15,13 +15,11 @@ class MCMODUpdaterPlugin(Star):
         self.update_job = None
 
     async def initialize(self):
+        await asyncio.create_subprocess_shell("python -m playwright install")
         self.update_job = asyncio.create_task(self._scheduler())
         logger.info("MC模组更新通知插件已启用")
 
     async def terminate(self):
-        if Crawler._driver is not None:
-            Crawler._driver.quit()
-            Crawler._driver = None
         if self.update_job:
             self.update_job.cancel()
             try:
@@ -62,8 +60,9 @@ class MCMODUpdaterPlugin(Star):
         for url in allURLs:
             try:
                 result = await Crawler.updateInfo(url)
+                logger.info(f"{url} | {result['name']} | {result['version']} | {result['date']}")
             except Exception as e:
-                logger.error(f"获取 {url} 的信息时出错：{str(e)}")
+                logger.error(f"获取 {url} 的信息时出错: {type(e).__name__} {str(e)}")
             if not result["version"]:
                 continue
             if (lastVersion := self._update_mod_data(result)) == result["version"]:
@@ -82,7 +81,7 @@ class MCMODUpdaterPlugin(Star):
             except asyncio.CancelledError:
                 raise
             except Exception as e:
-                logger.error(f"更新任务出错：{str(e)}")
+                logger.error(f"更新任务出错: {type(e).__name__} {str(e)}")
 
 
     @filter.command("mc查询")
@@ -100,7 +99,7 @@ class MCMODUpdaterPlugin(Star):
         except ValueError as e:
             yield event.plain_result(str(e))
         except Exception as e:
-            yield event.plain_result(f"获取 {url} 的信息时出错：{str(e)}")
+            yield event.plain_result(f"获取 {url} 的信息时出错: {type(e).__name__} {str(e)}")
 
     @filter.command("mc订阅")
     async def mc_subscribe(self, event: AstrMessageEvent):
@@ -119,7 +118,7 @@ class MCMODUpdaterPlugin(Star):
             yield event.plain_result(str(e))
             return
         except Exception as e:
-            yield event.plain_result(f"获取 {url} 的信息时出错：{str(e)}")
+            yield event.plain_result(f"获取 {url} 的信息时出错: {type(e).__name__} {str(e)}")
             return
         for subscriber in self.config["subscribe_relation"]:
             if subscriber["ID"] == session_id:
